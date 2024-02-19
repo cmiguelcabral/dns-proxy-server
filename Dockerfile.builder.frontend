@@ -6,6 +6,6 @@ RUN npm install &&\
   npm run build &&\
   rm -f `find ./build -name *.map`
 
-FROM scratch AS ARTIFACTS
-COPY --from=FRONTEND /app/build /static
-ENTRYPOINT cat
+# FROM scratch AS ARTIFACTS
+# COPY --from=FRONTEND /app/build /static
+ENTRYPOINT ["tar", "-czvf", "/static/static.tgz", "-C", "/app/build", "."]

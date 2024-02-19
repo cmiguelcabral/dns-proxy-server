@@ -6,16 +6,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.builder.frontend
-    image: defreitas/dns-proxy-server-build-frontend:${VERSION:-snapshot}
+    image: mama-mia/dns-proxy-server-build-frontend:${VERSION:-snapshot}
+    volumes:
+      - ./src/main/resources/META-INF/resources:/static
 
   build-linux-amd64:
-    image: defreitas/dns-proxy-server-build:${VERSION:-snapshot}-amd64
+    image: mama-mia/dns-proxy-server-build:${VERSION:-snapshot}
     build:
       context: .
       dockerfile: Dockerfile.builder.linux-amd64
+    platform: linux/amd64
 
   build-linux-aarch64:
-    image: defreitas/dns-proxy-server-build:${VERSION:-snapshot}-aarch64
+    image: mama-mia/dns-proxy-server-build:${VERSION:-snapshot}
     build:
       context: .
       dockerfile: Dockerfile.builder.linux-aarch64
@@ -25,14 +28,40 @@ services:
 
   # tag:image
   image-linux-amd64:
-    image: defreitas/dns-proxy-server:${VERSION:-snapshot}
+    image: mama-mia/dns-proxy-server:${VERSION:-snapshot}
     build:
       context: .
       dockerfile: Dockerfile
 
   image-linux-aarch64:
-    image: defreitas/dns-proxy-server:${VERSION:-snapshot}-aarch64
+    image: mama-mia/dns-proxy-server:${VERSION:-snapshot}-aarch64
     build:
       context: .
-      dockerfile: Dockerfile.aarch64
+      dockerfile: Dockerfile
+    platform: linux/arm64/v8
+
+  image-linux-version-amd64:
+    image: mammamia/dns-proxy-server:${VERSION:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+
+  image-linux-version-arm64:
+    image: mammamia/dns-proxy-server:${VERSION:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/arm64/v8
+
+  image-linux-latest-amd64:
+    extends: image-linux-version-amd64
+    image: mammamia/dns-proxy-server:latest
+    platform: linux/amd64
+
+  image-linux-latest-arm64:
+    extends: image-linux-version-arm64
+    image: mammamia/dns-proxy-server:latest
+    platform: linux/arm64/v8
   # end:image
+        

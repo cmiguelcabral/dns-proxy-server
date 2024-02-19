@@ -25,8 +25,8 @@ copyFileFromService(){
   from=$2
   to=$3
 
-  docker-compose down
-  id=$(docker-compose up --no-start --force-recreate $serviceName 2>&1 | grep Container | awk '{print $2}' | head -1)
+  docker compose down
+  id=$(docker compose up --no-start --force-recreate $serviceName 2>&1 | grep Container | awk '{print $2}' | head -1)
   echo "> copy from service=${serviceName}, id=${id}, from=${from}, to=${to}"
   docker cp "$id:$from" "$to"
 }
@@ -42,16 +42,9 @@ case $1 in
 
   build-frontend )
 
-    tmpDir=$(mktemp -d)
-    echo "> Building frontend files... tmpDir=${tmpDir}"
-    docker-compose build --no-cache --progress=plain build-frontend
-    copyFileFromService build-frontend /static ${tmpDir}
-
-    tgzPath=./src/main/resources/META-INF/resources/static.tgz
-    mkdir -p $(dirname ${tgzPath})
-    rm -vf ${tgzPath}
-    tar -czvf ${tgzPath} -C ${tmpDir} .
-
+    echo "> Building frontend files..."
+    docker compose run --rm --build build-frontend
+    docker compose down --rmi all build-frontend
   ;;
 
   build-backend )
@@ -66,7 +59,7 @@ case $1 in
 
     mkdir -p ${ARTIFACTS_DIR}
 
-    docker-compose build --no-cache --progress=plain ${BUILD_SERVICE_NAME}
+    docker compose build --no-cache --progress=plain ${BUILD_SERVICE_NAME}
 
     tmpDir=$(mktemp -d)
     echo "> Copying artifacts to ${tmpDir}..."
@@ -74,7 +67,7 @@ case $1 in
     mv -v ${tmpDir}/artifacts/* ${ARTIFACTS_DIR}
 
     echo "> Building image ${IMAGE_SERVICE_NAME} ..."
-    docker-compose build --no-cache --progress=plain "${IMAGE_SERVICE_NAME}"
+    docker compose build --no-cache --progress=plain "${IMAGE_SERVICE_NAME}"
 
     echo "> Backend build done ${IMAGE_SERVICE_NAME}"
   ;;
@@ -105,7 +98,7 @@ case $1 in
     docker tag defreitas/dns-proxy-server:${APP_VERSION} defreitas/dns-proxy-server:nightly &&\
     docker tag defreitas/dns-proxy-server:${APP_VERSION} defreitas/dns-proxy-server:unstable &&\
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin &&\
-    docker-compose push image-linux-amd64 &&\
+    docker compose push image-linux-amd64 &&\
     docker push defreitas/dns-proxy-server:nightly &&\
     docker push defreitas/dns-proxy-server:unstable
     echo "Push done"
@@ -114,7 +107,7 @@ case $1 in
   docker-push-arm )
     echo "> Push docker images to docker hub"
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin &&\
-    docker-compose push image-linux-aarch64
+    docker compose push image-linux-aarch64
     echo "Push done"
   ;;
 
@@ -129,9 +122,9 @@ case $1 in
   # also builds the jar
   ./builder.bash build-backend amd64
 
-  ./builder.bash compress-artifacts
+  # ./builder.bash compress-artifacts
 
-  ./builder.bash docker-push
+  # ./builder.bash docker-push
 
   echo "> deploy done"
   ;;
@@ -143,7 +136,7 @@ case $1 in
 
   ./builder.bash build-backend aarch64
   ./builder.bash compress-artifacts
-  ./builder.bash docker-push-arm
+  # ./builder.bash docker-push-arm
 
   echo "> arm deploy done"
   ;;

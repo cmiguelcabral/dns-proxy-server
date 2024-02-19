@@ -1,4 +1,9 @@
-FROM defreitas/tools_graalvm-22.3_java-19_debian-9:0.1.2 AS BUILDER
+FROM --platform=$BUILDPLATFORM container-registry.oracle.com/graalvm/native-image:22.3.1
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETARCH
+RUN echo "Building on:  $BUILDPLATFORM"
+RUN echo "Building for: $TARGETPLATFORM ($TARGETARCH)"
 COPY ./ /app
 WORKDIR /app
 RUN ./gradlew clean build compTest shadowJar nativeCompile -i &&\
